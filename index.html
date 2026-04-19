@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build a Neural Network Model — Interactive Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0f14;
+  --surface:#141820;
+  --surface2:#1a1f2b;
+  --surface3:#222836;
+  --border:#2a3040;
+  --text:#e2e6ef;
+  --text2:#8c95ab;
+  --text3:#5c6478;
+  --accent:#6ee7b7;
+  --accent2:#34d399;
+  --accent-glow:rgba(110,231,183,0.12);
+  --orange:#fb923c;
+  --blue:#60a5fa;
+  --purple:#c084fc;
+  --pink:#f472b6;
+  --yellow:#fbbf24;
+  --red:#f87171;
+  --cyan:#22d3ee;
+  --code-bg:#0d1117;
+  --keyword:#c084fc;
+  --string:#6ee7b7;
+  --func:#60a5fa;
+  --comment:#4a5568;
+  --number:#fbbf24;
+  --class:#fb923c;
+  --param:#f472b6;
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ---- HEADER ---- */
+.header{
+  background:linear-gradient(135deg,#0f1318 0%,#151b26 50%,#121822 100%);
+  border-bottom:1px solid var(--border);
+  padding:2.5rem 2rem 2rem;
+  position:relative;
+  overflow:hidden;
+}
+.header::before{
+  content:'';position:absolute;top:-60%;right:-10%;width:500px;height:500px;
+  background:radial-gradient(circle,rgba(110,231,183,0.06) 0%,transparent 70%);
+  pointer-events:none;
+}
+.header-tag{
+  display:inline-block;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.7rem;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent);
+  background:var(--accent-glow);
+  border:1px solid rgba(110,231,183,0.2);
+  border-radius:100px;padding:.35rem .9rem;
+  margin-bottom:.9rem;
+}
+.header h1{
+  font-family:'Fraunces',serif;
+  font-weight:900;font-size:2.1rem;
+  line-height:1.2;
+  background:linear-gradient(135deg,#e2e6ef 30%,#6ee7b7 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.header p{color:var(--text2);margin-top:.5rem;font-size:.92rem;max-width:600px;line-height:1.6}
+
+/* ---- PROGRESS ---- */
+.progress-bar{
+  position:sticky;top:0;z-index:100;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:.6rem 1.5rem;
+  display:flex;align-items:center;gap:.8rem;
+  backdrop-filter:blur(12px);
+}
+.progress-track{
+  flex:1;height:6px;background:var(--surface3);border-radius:100px;overflow:hidden;
+}
+.progress-fill{
+  height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));
+  border-radius:100px;transition:width .5s cubic-bezier(.4,0,.2,1);
+}
+.progress-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.72rem;color:var(--text2);white-space:nowrap;min-width:100px;text-align:right;
+}
+
+/* ---- NAV BUTTONS ---- */
+.nav-row{
+  display:flex;gap:.6rem;padding:1rem 1.5rem;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  flex-wrap:wrap;
+}
+.nav-dot{
+  width:34px;height:34px;border-radius:8px;
+  border:1px solid var(--border);background:var(--surface2);
+  color:var(--text3);font-family:'JetBrains Mono',monospace;
+  font-size:.7rem;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .25s;position:relative;
+}
+.nav-dot:hover{border-color:var(--accent);color:var(--accent)}
+.nav-dot.active{
+  background:var(--accent);color:var(--bg);border-color:var(--accent);
+  box-shadow:0 0 16px rgba(110,231,183,0.3);
+}
+.nav-dot.completed{
+  background:rgba(110,231,183,0.12);color:var(--accent);border-color:rgba(110,231,183,0.3);
+}
+
+/* ---- MAIN CONTENT ---- */
+.main{display:flex;min-height:calc(100vh - 200px)}
+.code-panel{
+  flex:1;min-width:0;
+  background:var(--code-bg);
+  border-right:1px solid var(--border);
+  overflow-y:auto;padding:1.5rem;
+  max-height:calc(100vh - 180px);
+  position:sticky;top:100px;
+}
+.explain-panel{
+  flex:1;min-width:0;
+  overflow-y:auto;padding:1.8rem 2rem;
+  max-height:calc(100vh - 180px);
+  position:sticky;top:100px;
+}
+
+/* ---- CODE DISPLAY ---- */
+.code-block{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.78rem;line-height:1.75;
+  white-space:pre-wrap;word-break:break-all;
+}
+.code-line{
+  display:block;padding:0 .5rem;
+  border-radius:4px;transition:background .3s;
+}
+.code-line.highlighted{
+  background:rgba(110,231,183,0.07);
+  border-left:3px solid var(--accent);
+  padding-left:calc(.5rem - 3px);
+}
+.code-line.dimmed{opacity:.35}
+.line-num{
+  display:inline-block;width:2.5rem;
+  color:var(--text3);text-align:right;
+  margin-right:1rem;user-select:none;
+  font-size:.7rem;
+}
+
+/* Syntax colors */
+.kw{color:var(--keyword)}
+.str{color:var(--string)}
+.fn{color:var(--func)}
+.cm{color:var(--comment);font-style:italic}
+.num{color:var(--number)}
+.cls{color:var(--class)}
+.par{color:var(--param)}
+.op{color:var(--pink)}
+
+/* ---- EXPLANATION PANEL ---- */
+.step-badge{
+  display:inline-flex;align-items:center;gap:.5rem;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.68rem;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;
+  margin-bottom:.8rem;
+}
+.step-badge .num{
+  background:var(--accent);color:var(--bg);
+  width:24px;height:24px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;
+}
+.step-badge .label{color:var(--accent)}
+
+.step-title{
+  font-family:'Fraunces',serif;font-weight:700;
+  font-size:1.45rem;line-height:1.3;
+  margin-bottom:1rem;
+}
+.step-subtitle{
+  color:var(--text2);font-size:.88rem;line-height:1.6;
+  margin-bottom:1.5rem;padding-bottom:1.2rem;
+  border-bottom:1px solid var(--border);
+}
+
+/* Explanation cards */
+.explain-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;padding:1.1rem 1.2rem;
+  margin-bottom:.8rem;
+  transition:border-color .3s;
+}
+.explain-card:hover{border-color:rgba(110,231,183,0.3)}
+.explain-card .code-ref{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.72rem;
+  color:var(--accent);
+  background:var(--accent-glow);
+  padding:.15rem .5rem;border-radius:4px;
+  display:inline-block;margin-bottom:.5rem;
+  border:1px solid rgba(110,231,183,0.15);
+}
+.explain-card .desc{
+  color:var(--text);font-size:.85rem;line-height:1.65;
+}
+.explain-card .desc strong{color:var(--accent);font-weight:600}
+
+/* Term badges */
+.term{
+  display:inline-block;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.68rem;font-weight:600;
+  padding:.18rem .55rem;border-radius:5px;
+  margin:.15rem .1rem;
+  cursor:default;
+}
+.term.tf{background:rgba(251,146,60,0.12);color:var(--orange);border:1px solid rgba(251,146,60,0.2)}
+.term.keras{background:rgba(248,113,113,0.12);color:var(--red);border:1px solid rgba(248,113,113,0.2)}
+.term.layer{background:rgba(96,165,250,0.12);color:var(--blue);border:1px solid rgba(96,165,250,0.2)}
+.term.opt{background:rgba(192,132,252,0.12);color:var(--purple);border:1px solid rgba(192,132,252,0.2)}
+.term.data{background:rgba(34,211,238,0.12);color:var(--cyan);border:1px solid rgba(34,211,238,0.2)}
+.term.gen{background:rgba(110,231,183,0.12);color:var(--accent);border:1px solid rgba(110,231,183,0.2)}
+
+/* Tip box */
+.tip-box{
+  background:linear-gradient(135deg,rgba(110,231,183,0.06),rgba(96,165,250,0.04));
+  border:1px solid rgba(110,231,183,0.15);
+  border-radius:10px;padding:1rem 1.1rem;
+  margin-top:1rem;
+}
+.tip-box .tip-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.65rem;font-weight:700;
+  color:var(--accent);letter-spacing:.1em;
+  text-transform:uppercase;margin-bottom:.4rem;
+}
+.tip-box .tip-text{
+  color:var(--text2);font-size:.82rem;line-height:1.6;
+}
+
+/* ---- BOTTOM NAV ---- */
+.bottom-nav{
+  display:flex;justify-content:space-between;
+  padding:1.5rem 0;margin-top:1.5rem;
+  border-top:1px solid var(--border);
+}
+.btn{
+  font-family:'DM Sans',sans-serif;
+  font-size:.82rem;font-weight:600;
+  padding:.65rem 1.4rem;border-radius:8px;
+  border:none;cursor:pointer;
+  display:flex;align-items:center;gap:.4rem;
+  transition:all .25s;
+}
+.btn-prev{
+  background:var(--surface2);color:var(--text2);
+  border:1px solid var(--border);
+}
+.btn-prev:hover{border-color:var(--text3);color:var(--text)}
+.btn-next{
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  color:var(--bg);
+}
+.btn-next:hover{box-shadow:0 0 20px rgba(110,231,183,0.3);transform:translateY(-1px)}
+.btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+/* ---- RESPONSIVE ---- */
+@media(max-width:900px){
+  .main{flex-direction:column}
+  .code-panel,.explain-panel{
+    position:relative;top:auto;
+    max-height:none;
+  }
+  .code-panel{max-height:45vh;border-right:none;border-bottom:1px solid var(--border)}
+}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.explain-card{animation:fadeUp .4s ease both}
+.explain-card:nth-child(2){animation-delay:.05s}
+.explain-card:nth-child(3){animation-delay:.1s}
+.explain-card:nth-child(4){animation-delay:.15s}
+.explain-card:nth-child(5){animation-delay:.2s}
+.explain-card:nth-child(6){animation-delay:.25s}
+.explain-card:nth-child(7){animation-delay:.3s}
+.explain-card:nth-child(8){animation-delay:.35s}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-tag">Lesson: Build a NN Model</div>
+  <h1>Building an ANN with Keras</h1>
+  <p>An interactive, step-by-step walkthrough of building an Artificial Neural Network to classify handwritten digits using the MNIST dataset.</p>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-label" id="progressLabel">Step 1 / 10</div>
+</div>
+
+<div class="nav-row" id="navRow"></div>
+
+<div class="main">
+  <div class="code-panel" id="codePanel"></div>
+  <div class="explain-panel" id="explainPanel"></div>
+</div>
+
+<script>
+// =====================================================
+// STEP DATA
+// =====================================================
+const steps = [
+  {
+    title: "Import the Libraries",
+    subtitle: "Every Python project starts by importing the tools (libraries) you need. Here we bring in everything required to build and train a neural network.",
+    lines: [
+      { code: `import numpy as np`, ref: "import numpy as np", desc: `<strong>NumPy</strong> is a library for working with numbers and arrays (lists of numbers). We give it the short name <span class="term gen">np</span> so we can type less. Neural networks deal with huge amounts of numbers — NumPy makes that fast.` },
+      { code: `import pandas as pd`, ref: "import pandas as pd", desc: `<strong>Pandas</strong> is a library for organising data into tables (like Excel). We use it later to display our results neatly. The short name is <span class="term gen">pd</span>.` },
+      { code: `import tensorflow as tf`, ref: "import tensorflow as tf", desc: `<span class="term tf">TensorFlow</span> is Google's open-source framework for building machine learning models. Think of it as the <em>engine</em> that runs the neural network calculations on your computer (or GPU). We call it <span class="term tf">tf</span> for short.` },
+      { code: `from tensorflow.keras.datasets import mnist`, ref: "from tensorflow.keras.datasets import mnist", desc: `<span class="term keras">Keras</span> is a high-level API that sits <em>on top of</em> TensorFlow. It makes building neural networks much simpler — like using Lego blocks instead of raw bricks. Here we import the <span class="term data">MNIST</span> dataset — a famous collection of 70,000 images of handwritten digits (0–9).` },
+      { code: `from tensorflow.keras.models import Sequential`, ref: "from tensorflow.keras.models import Sequential", desc: `<span class="term keras">Sequential</span> is the simplest way to build a neural network in Keras. It means the layers are stacked <em>one after another</em> in a straight line — input → hidden → output.` },
+      { code: `from tensorflow.keras.layers import Input, Dense, BatchNormalization`, ref: "from tensorflow.keras.layers import Input, Dense, BatchNormalization", desc: `We import three types of layers:<br>• <span class="term layer">Input</span> — tells the model the shape of incoming data<br>• <span class="term layer">Dense</span> — a "fully connected" layer where every neuron connects to every neuron in the next layer (the core building block of an ANN)<br>• <span class="term layer">BatchNormalization</span> — normalises the values flowing through the network so training is faster and more stable` },
+      { code: `from tensorflow.keras.optimizers import Adam`, ref: "from tensorflow.keras.optimizers import Adam", desc: `<span class="term opt">Adam</span> is an <em>optimiser</em> — the algorithm that adjusts the network's weights during training. Adam is popular because it adapts the learning speed automatically, making it great for beginners.` },
+      { code: `from sklearn.model_selection import train_test_split`, ref: "from sklearn.model_selection import train_test_split", desc: `<span class="term gen">train_test_split</span> is a helper from Scikit-learn that randomly divides your data into separate groups (e.g., training & validation) so you can fairly test how well your model learned.` },
+      { code: `np.random.seed(42)\ntf.random.set_seed(42)`, ref: "np.random.seed(42) / tf.random.set_seed(42)", desc: `Setting a <strong>random seed</strong> means the "random" numbers used in training will be the <em>same</em> every time you run the code. This makes your results <strong>reproducible</strong> — important for debugging and comparing models.` },
+    ],
+    tip: "Think of TensorFlow as the car engine and Keras as the steering wheel. You don't need to understand every piston to drive — Keras lets you focus on the road!"
+  },
+  {
+    title: "Load the MNIST Dataset",
+    subtitle: "We load the dataset that Keras provides and inspect its shape to understand what we are working with.",
+    lines: [
+      { code: `(X_train_full, y_train_full), (X_test, y_test) = mnist.load_data()`, ref: "(X_train_full, y_train_full), (X_test, y_test) = mnist.load_data()", desc: `This single line downloads (or loads from cache) the entire MNIST dataset and splits it into two groups automatically:<br>• <strong>X_train_full</strong> — 60,000 images for training<br>• <strong>y_train_full</strong> — the correct digit label for each training image<br>• <strong>X_test</strong> — 10,000 images for testing<br>• <strong>y_test</strong> — the correct labels for test images<br><br><em>X</em> = input features (pictures), <em>y</em> = target labels (answers).` },
+      { code: `print("X_train_full shape:", X_train_full.shape)`, ref: 'print("X_train_full shape:", X_train_full.shape)', desc: `<span class="term data">.shape</span> tells us the dimensions. For X_train_full it shows <code>(60000, 28, 28)</code> — that means 60,000 images, each 28 pixels wide × 28 pixels tall. Each pixel is a number from 0 (black) to 255 (white).` },
+    ],
+    tip: "MNIST is the 'Hello World' of machine learning. It's small enough to train quickly but complex enough to teach real concepts."
+  },
+  {
+    title: "Split into Train / Validation / Test",
+    subtitle: "We already have a test set from MNIST. Now we carve out a validation set from the training data so we can monitor the model while it learns.",
+    lines: [
+      { code: `X_train, X_valid, y_train, y_valid = train_test_split(\n    X_train_full,\n    y_train_full,\n    test_size=10000,\n    random_state=42,\n    stratify=y_train_full\n)`, ref: "train_test_split(...)", desc: `This splits the 60,000 training images into:<br>• <strong>X_train / y_train</strong> — 50,000 images for actual training<br>• <strong>X_valid / y_valid</strong> — 10,000 images for validation<br><br>Key arguments:<br>• <span class="term gen">test_size=10000</span> — put 10,000 aside for validation<br>• <span class="term gen">random_state=42</span> — same split every time (reproducibility)<br>• <span class="term gen">stratify=y_train_full</span> — keeps the same proportion of each digit (0–9) in both groups, so neither group is biased` },
+    ],
+    tip: "Why three sets? Training = the textbook the model studies. Validation = practice quiz to tune settings. Test = the final exam — only used once at the end!"
+  },
+  {
+    title: "Normalise & Reshape",
+    subtitle: "Neural networks work best when input values are small. We also need to flatten the 2D images into 1D vectors for an ANN.",
+    lines: [
+      { code: `X_train = X_train / 255.0\nX_valid = X_valid / 255.0\nX_test  = X_test  / 255.0`, ref: "X_train / 255.0", desc: `Pixel values range from 0 to 255. Dividing by 255 scales them to <strong>0.0 – 1.0</strong>. This is called <span class="term gen">normalisation</span>. Smaller, consistent numbers help the optimiser converge faster and avoid numerical problems.` },
+      { code: `X_train = X_train.reshape(-1, 28 * 28)\nX_valid = X_valid.reshape(-1, 28 * 28)\nX_test  = X_test.reshape(-1, 28 * 28)`, ref: "reshape(-1, 28 * 28)", desc: `An ANN's <span class="term layer">Dense</span> layer expects a <strong>1D vector</strong>, not a 2D grid. So we <em>flatten</em> each 28×28 image into a single row of <strong>784 values</strong>.<br><br><span class="term gen">-1</span> tells NumPy "figure out how many images there are automatically".` },
+    ],
+    tip: "Think of it like unrolling a photo into a single line of pixels. The ANN doesn't care about the 2D arrangement — it just needs the raw numbers."
+  },
+  {
+    title: "Build Model 1 — Define the Architecture",
+    subtitle: "Now the exciting part: we stack layers to create our first neural network!",
+    lines: [
+      { code: `model_1 = Sequential([`, ref: "Sequential([...])", desc: `We create a <span class="term keras">Sequential</span> model — a simple stack of layers processed top to bottom. Think of it as a pipeline: data flows in one end and a prediction comes out the other.` },
+      { code: `    Input(shape=(784,)),`, ref: "Input(shape=(784,))", desc: `The <span class="term layer">Input</span> layer tells Keras: "each sample is a vector of 784 numbers". This must match our flattened image size (28×28 = 784).` },
+      { code: `    Dense(128, activation='relu'),`, ref: "Dense(128, activation='relu')", desc: `A <span class="term layer">Dense</span> (fully connected) hidden layer with <strong>128 neurons</strong>.<br><br><span class="term gen">activation='relu'</span> — ReLU (Rectified Linear Unit) turns all negative values to 0. It's the most popular activation function because it's simple and effective. It helps the network learn complex patterns.` },
+      { code: `    BatchNormalization(),`, ref: "BatchNormalization()", desc: `<span class="term layer">BatchNormalization</span> rescales the outputs of the previous layer so they have a mean close to 0 and a standard deviation close to 1. Benefits:<br>• Faster training<br>• More stable gradients<br>• Acts as mild regularisation (reduces overfitting)` },
+      { code: `    Dense(10, activation='softmax')`, ref: "Dense(10, activation='softmax')", desc: `The <span class="term layer">output layer</span> has <strong>10 neurons</strong> — one for each digit (0–9).<br><br><span class="term gen">activation='softmax'</span> converts the raw scores into <strong>probabilities</strong> that add up to 1.0. The neuron with the highest probability is the model's predicted digit.` },
+      { code: `])`, ref: "])", desc: `Closes the Sequential model definition. Our network: 784 inputs → 128 neurons (ReLU) → BatchNorm → 10 outputs (Softmax).` },
+    ],
+    tip: "Dense(128) means 128 neurons. More neurons = more capacity to learn patterns, but also more computation. It's a trade-off!"
+  },
+  {
+    title: "Compile Model 1",
+    subtitle: "Before training, we must 'compile' the model — this sets the rules for how it will learn.",
+    lines: [
+      { code: `model_1.compile(\n    optimizer=Adam(learning_rate=0.001),\n    loss='sparse_categorical_crossentropy',\n    metrics=['accuracy']\n)`, ref: "model_1.compile(...)", desc: `Compiling configures three things:<br><br>• <span class="term opt">optimizer=Adam(learning_rate=0.001)</span> — Adam adjusts the model's weights to reduce errors. The <strong>learning rate</strong> (0.001) controls how big each adjustment is. Too high = unstable; too low = painfully slow.<br><br>• <span class="term gen">loss='sparse_categorical_crossentropy'</span> — the <em>loss function</em> measures how wrong the predictions are. "Sparse categorical" is used when your labels are integers (0, 1, 2… 9) rather than one-hot encoded vectors.<br><br>• <span class="term gen">metrics=['accuracy']</span> — tells Keras to also track accuracy (% of correct predictions) during training, so we can monitor progress.` },
+    ],
+    tip: "Think of compile() as setting the exam rules before the student (model) starts studying. The optimiser is the study strategy, the loss is how mistakes are graded, and metrics are the scoreboard."
+  },
+  {
+    title: "Train Model 1",
+    subtitle: "Training is where the model actually learns from the data — adjusting its weights over multiple passes (epochs).",
+    lines: [
+      { code: `history_1 = model_1.fit(\n    X_train, y_train,\n    epochs=10,\n    batch_size=32,\n    validation_data=(X_valid, y_valid),\n    verbose=1\n)`, ref: "model_1.fit(...)", desc: `<span class="term keras">.fit()</span> starts the training loop. Key arguments:<br><br>• <strong>X_train, y_train</strong> — the images and their correct labels<br><br>• <span class="term gen">epochs=10</span> — the model will see the <em>entire</em> training set <strong>10 times</strong>. Each pass is one epoch.<br><br>• <span class="term gen">batch_size=32</span> — instead of feeding all 50,000 images at once, it feeds them in groups of 32. This uses less memory and updates weights more frequently.<br><br>• <span class="term gen">validation_data</span> — after each epoch, the model is tested on the validation set (without learning from it) so we can see if it's improving or overfitting.<br><br>• <span class="term gen">verbose=1</span> — prints a progress bar for each epoch.<br><br>The returned <strong>history</strong> object stores the loss and accuracy values for every epoch.` },
+    ],
+    tip: "An epoch is like re-reading a textbook chapter. A batch is like reading one page at a time. More epochs = more practice, but too many can lead to memorisation (overfitting) instead of true learning."
+  },
+  {
+    title: "Evaluate & Predict with Model 1",
+    subtitle: "After training, we test the model on data it has never seen and look at its first predictions.",
+    lines: [
+      { code: `test_loss_1, test_acc_1 = model_1.evaluate(X_test, y_test, verbose=0)`, ref: "model_1.evaluate(...)", desc: `<span class="term keras">.evaluate()</span> runs the trained model on the <strong>test set</strong> (10,000 unseen images) and returns:<br>• <strong>test_loss</strong> — how far off the predictions are (lower = better)<br>• <strong>test_acc</strong> — the percentage of correct predictions (higher = better)<br><br>This is the model's "final exam" score.` },
+      { code: `predictions_1 = model_1.predict(X_test[:5])`, ref: "model_1.predict(X_test[:5])", desc: `<span class="term keras">.predict()</span> generates the model's output for the first 5 test images. It returns 5 arrays of 10 probabilities each (one per digit class).` },
+      { code: `predicted_classes_1 = np.argmax(predictions_1, axis=1)`, ref: "np.argmax(predictions_1, axis=1)", desc: `<span class="term gen">np.argmax</span> picks the index (position) with the <strong>highest probability</strong> in each row. That index IS the predicted digit. For example, if position 7 has the highest value, the prediction is "7".` },
+      { code: `results_table_1 = pd.DataFrame({\n    'Record Number': [1, 2, 3, 4, 5],\n    'Actual Class': y_test[:5],\n    'Predicted Class': predicted_classes_1\n})`, ref: "pd.DataFrame({...})", desc: `We create a Pandas table comparing the <strong>actual labels</strong> with the <strong>predicted labels</strong> side by side for the first 5 images. This makes it easy to spot correct and incorrect predictions at a glance.` },
+    ],
+    tip: "If the predicted class matches the actual class, the model got it right! A well-trained model on MNIST typically achieves 97%+ accuracy."
+  },
+  {
+    title: "Build & Train Model 2 — Optimised Version",
+    subtitle: "We create a second model with a deeper architecture and different training settings to see if we can improve performance.",
+    lines: [
+      { code: `model_2 = Sequential([\n    Input(shape=(784,)),\n    Dense(256, activation='relu'),\n    BatchNormalization(),\n    Dense(128, activation='relu'),\n    BatchNormalization(),\n    Dense(10, activation='softmax')\n])`, ref: "model_2 = Sequential([...])", desc: `Model 2 has key differences from Model 1:<br><br>• <strong>256 neurons</strong> in the first hidden layer (was 128) — more capacity to learn patterns<br>• <strong>Two hidden layers</strong> instead of one — a deeper network can learn more complex features<br>• <strong>Two BatchNormalization layers</strong> — one after each hidden layer for stability<br><br>The output layer stays the same (10 neurons with softmax) because we still classify 10 digits.` },
+      { code: `history_2 = model_2.fit(\n    X_train, y_train,\n    epochs=12,\n    batch_size=64,\n    validation_data=(X_valid, y_valid),\n    verbose=1\n)`, ref: "model_2.fit(...)", desc: `Training changes for Model 2:<br><br>• <span class="term gen">epochs=12</span> — two more passes than Model 1, giving the deeper network more time to learn<br>• <span class="term gen">batch_size=64</span> — larger batches mean fewer weight updates per epoch but each update is based on more data, which can be smoother` },
+    ],
+    tip: "There's no single 'best' architecture — machine learning involves experimenting! Changing the number of layers, neurons, epochs, or batch size can all affect results."
+  },
+  {
+    title: "Compare & Choose the Best Model",
+    subtitle: "The final step: compare both models side by side and pick the winner based on test accuracy.",
+    lines: [
+      { code: `comparison_table = pd.DataFrame({\n    'Model': ['Model 1', 'Model 2'],\n    'Validation Accuracy': [valid_acc_1, valid_acc_2],\n    'Testing Accuracy': [test_acc_1, test_acc_2]\n})`, ref: "comparison_table = pd.DataFrame({...})", desc: `We build a comparison table showing both models' <strong>validation accuracy</strong> and <strong>testing accuracy</strong>. This lets us compare performance at a glance. The testing accuracy is most important — it shows how the model performs on completely unseen data.` },
+      { code: `if test_acc_2 > test_acc_1:\n    final_model_name = "Model 2"\nelif test_acc_1 > test_acc_2:\n    final_model_name = "Model 1"\nelse:\n    if valid_acc_2 > valid_acc_1:\n        final_model_name = "Model 2"\n    else:\n        final_model_name = "Model 1"`, ref: "if test_acc_2 > test_acc_1: ...", desc: `The decision logic:<br><br>1. First, compare <strong>test accuracy</strong> — the model with the higher score on unseen data wins<br>2. If test accuracy is exactly the same (a tie), use <strong>validation accuracy</strong> as a tiebreaker<br><br>This is a simple but effective model-selection strategy. In practice, you might also consider training time, model size, or how well the model generalises to different data.` },
+    ],
+    tip: "Always judge a model by its TEST accuracy, not training accuracy. High training accuracy with low test accuracy = overfitting (the model memorised answers instead of learning patterns)."
+  }
+];
+
+// =====================================================
+// FULL SOURCE LINES (for the code panel)
+// =====================================================
+const sourceBlocks = [
+  // Step 0: Imports
+  { step: 0, lines: [
+    { t: 'cm', c: '# STEP 0: Import the libraries' },
+    { t: 'kw', c: 'import', rest: [{t:'cls',c:' numpy'},{t:'',c:' '},{t:'kw',c:'as'},{t:'',c:' np'}] },
+    { t: 'kw', c: 'import', rest: [{t:'cls',c:' pandas'},{t:'',c:' '},{t:'kw',c:'as'},{t:'',c:' pd'}] },
+    { t: 'kw', c: 'import', rest: [{t:'cls',c:' tensorflow'},{t:'',c:' '},{t:'kw',c:'as'},{t:'',c:' tf'}] },
+    { t: '', c: '' },
+    { t: 'kw', c: 'from', rest: [{t:'',c:' tensorflow.keras.datasets '},{t:'kw',c:'import'},{t:'cls',c:' mnist'}] },
+    { t: 'kw', c: 'from', rest: [{t:'',c:' tensorflow.keras.models '},{t:'kw',c:'import'},{t:'cls',c:' Sequential'}] },
+    { t: 'kw', c: 'from', rest: [{t:'',c:' tensorflow.keras.layers '},{t:'kw',c:'import'},{t:'cls',c:' Input, Dense, BatchNormalization'}] },
+    { t: 'kw', c: 'from', rest: [{t:'',c:' tensorflow.keras.optimizers '},{t:'kw',c:'import'},{t:'cls',c:' Adam'}] },
+    { t: 'kw', c: 'from', rest: [{t:'',c:' sklearn.model_selection '},{t:'kw',c:'import'},{t:'cls',c:' train_test_split'}] },
+    { t: '', c: '' },
+    { t: '', c: 'np.random.seed(', rest:[{t:'num',c:'42'},{t:'',c:')'}] },
+    { t: '', c: 'tf.random.set_seed(', rest:[{t:'num',c:'42'},{t:'',c:')'}] },
+  ]},
+  // Step 1: Load
+  { step: 1, lines: [
+    { t: '', c: '' },
+    { t: 'cm', c: '# 1. Load the MNIST dataset' },
+    { t: '', c: '(X_train_full, y_train_full), (X_test, y_test) = mnist.load_data()' },
+    { t: '', c: '' },
+    { t: 'fn', c: 'print', rest:[{t:'',c:'('},{t:'str',c:'"X_train_full shape:"'},{t:'',c:', X_train_full.shape)'}] },
+    { t: 'fn', c: 'print', rest:[{t:'',c:'('},{t:'str',c:'"y_train_full shape:"'},{t:'',c:', y_train_full.shape)'}] },
+  ]},
+  // Step 2: Split
+  { step: 2, lines: [
+    { t: '', c: '' },
+    { t: 'cm', c: '# 3. Split into training, validation, testing' },
+    { t: '', c: 'X_train, X_valid, y_train, y_valid = train_test_split(' },
+    { t: '', c: '    X_train_full, y_train_full,' },
+    { t: '', c: '    test_size=', rest:[{t:'num',c:'10000'},{t:'',c:', random_state='},{t:'num',c:'42'},{t:'',c:','}] },
+    { t: '', c: '    stratify=y_train_full' },
+    { t: '', c: ')' },
+  ]},
+  // Step 3: Normalise & reshape
+  { step: 3, lines: [
+    { t: '', c: '' },
+    { t: 'cm', c: '# 4. Normalise the input features' },
+    { t: '', c: 'X_train = X_train / ', rest:[{t:'num',c:'255.0'}] },
+    { t: '', c: 'X_valid = X_valid / ', rest:[{t:'num',c:'255.0'}] },
+    { t: '', c: 'X_test  = X_test  / ', rest:[{t:'num',c:'255.0'}] },
+    { t: '', c: '' },
+    { t: 'cm', c: '# Flatten 28x28 into 784' },
+    { t: '', c: 'X_train = X_train.reshape(', rest:[{t:'num',c:'-1'},{t:'',c:', '},{t:'num',c:'28 * 28'},{t:'',c:')'}] },
+    { t: '', c: 'X_valid = X_valid.reshape(', rest:[{t:'num',c:'-1'},{t:'',c:', '},{t:'num',c:'28 * 28'},{t:'',c:')'}] },
+    { t: '', c: 'X_test  = X_test.reshape(', rest:[{t:'num',c:'-1'},{t:'',c:', '},{t:'num',c:'28 * 28'},{t:'',c:')'}] },
+  ]},
+  // Step 4: Build model 1
+  { step: 4, lines: [
+    { t: '', c: '' },
+    { t: 'cm', c: '# 5. Build Model 1' },
+    { t: '', c: 'model_1 = Sequential([' },
+    { t: '', c: '    Input(shape=(', rest:[{t:'num',c:'784'},{t:'',c:',)),'}] },
+    { t: '', c: '    Dense(', rest:[{t:'num',c:'128'},{t:'',c:', activation='},{t:'str',c:"'relu'"},{t:'',c:'),'}] },
+    { t: '', c: '    BatchNormalization(),' },
+    { t: '', c: '    Dense(', rest:[{t:'num',c:'10'},{t:'',c:', activation='},{t:'str',c:"'softmax'"},{t:'',c:')'}] },
+    { t: '', c: '])' },
+  ]},
+  // Step 5: Compile
+  { step: 5, lines: [
+    { t: '', c: '' },
+    { t: 'cm', c: '# Compile Model 1' },
+    { t: '', c: 'model_1.compile(' },
+    { t: '', c: '    optimizer=Adam(learning_rate=', rest:[{t:'num',c:'0.001'},{t:'',c:'),'}] },
+    { t: '', c: '    loss=', rest:[{t:'str',c:"'sparse_categorical_crossentropy'"},{t:'',c:','}] },
+    { t: '', c: '    metrics=[', rest:[{t:'str',c:"'accuracy'"},{t:'',c:']'}] },
+    { t: '', c: ')' },
+  ]},
+  // Step 6: Train
+  { step: 6, lines: [
+    { t: '', c: '' },
+    { t: 'cm', c: '# 8-9. Train Model 1' },
+    { t: '', c: 'history_1 = model_1.fit(' },
+    { t: '', c: '    X_train, y_train,' },
+    { t: '', c: '    epochs=', rest:[{t:'num',c:'10'},{t:'',c:', batch_size='},{t:'num',c:'32'},{t:'',c:','}] },
+    { t: '', c: '    validation_data=(X_valid, y_valid),' },
+    { t: '', c: '    verbose=', rest:[{t:'num',c:'1'}] },
+    { t: '', c: ')' },
+  ]},
+  // Step 7: Evaluate & predict
+  { step: 7, lines: [
+    { t: '', c: '' },
+    { t: 'cm', c: '# 10-13. Evaluate & Predict Model 1' },
+    { t: '', c: 'test_loss_1, test_acc_1 = model_1.evaluate(X_test, y_test)' },
+    { t: '', c: '' },
+    { t: '', c: 'predictions_1 = model_1.predict(X_test[:5])' },
+    { t: '', c: 'predicted_classes_1 = np.argmax(predictions_1, axis=1)' },
+    { t: '', c: '' },
+    { t: '', c: 'results_table_1 = pd.DataFrame({' },
+    { t: '', c: '    ', rest:[{t:'str',c:"'Record Number'"},{t:'',c:': [1,2,3,4,5],'}] },
+    { t: '', c: '    ', rest:[{t:'str',c:"'Actual Class'"},{t:'',c:': y_test[:5],'}] },
+    { t: '', c: '    ', rest:[{t:'str',c:"'Predicted Class'"},{t:'',c:': predicted_classes_1'}] },
+    { t: '', c: '})' },
+  ]},
+  // Step 8: Model 2
+  { step: 8, lines: [
+    { t: '', c: '' },
+    { t: 'cm', c: '# 14-15. Build & Train Model 2' },
+    { t: '', c: 'model_2 = Sequential([' },
+    { t: '', c: '    Input(shape=(', rest:[{t:'num',c:'784'},{t:'',c:',)),'}] },
+    { t: '', c: '    Dense(', rest:[{t:'num',c:'256'},{t:'',c:', activation='},{t:'str',c:"'relu'"},{t:'',c:'),'}] },
+    { t: '', c: '    BatchNormalization(),' },
+    { t: '', c: '    Dense(', rest:[{t:'num',c:'128'},{t:'',c:', activation='},{t:'str',c:"'relu'"},{t:'',c:'),'}] },
+    { t: '', c: '    BatchNormalization(),' },
+    { t: '', c: '    Dense(', rest:[{t:'num',c:'10'},{t:'',c:', activation='},{t:'str',c:"'softmax'"},{t:'',c:')'}] },
+    { t: '', c: '])' },
+    { t: '', c: '' },
+    { t: '', c: 'history_2 = model_2.fit(' },
+    { t: '', c: '    X_train, y_train,' },
+    { t: '', c: '    epochs=', rest:[{t:'num',c:'12'},{t:'',c:', batch_size='},{t:'num',c:'64'},{t:'',c:','}] },
+    { t: '', c: '    validation_data=(X_valid, y_valid)' },
+    { t: '', c: ')' },
+  ]},
+  // Step 9: Compare
+  { step: 9, lines: [
+    { t: '', c: '' },
+    { t: 'cm', c: '# 18-19. Compare & Choose' },
+    { t: '', c: 'comparison_table = pd.DataFrame({' },
+    { t: '', c: '    ', rest:[{t:'str',c:"'Model'"},{t:'',c:": ['Model 1','Model 2'],"}] },
+    { t: '', c: '    ', rest:[{t:'str',c:"'Val Acc'"},{t:'',c:': [valid_acc_1, valid_acc_2],'}] },
+    { t: '', c: '    ', rest:[{t:'str',c:"'Test Acc'"},{t:'',c:': [test_acc_1, test_acc_2]'}] },
+    { t: '', c: '})' },
+    { t: '', c: '' },
+    { t: 'kw', c: 'if', rest:[{t:'',c:' test_acc_2 > test_acc_1:'}] },
+    { t: '', c: '    final_model_name = ', rest:[{t:'str',c:'"Model 2"'}] },
+    { t: 'kw', c: 'elif', rest:[{t:'',c:' test_acc_1 > test_acc_2:'}] },
+    { t: '', c: '    final_model_name = ', rest:[{t:'str',c:'"Model 1"'}] },
+    { t: 'kw', c: 'else', rest:[{t:'',c:':'}] },
+    { t: '', c: '    ', rest:[{t:'kw',c:'if'},{t:'',c:' valid_acc_2 > valid_acc_1:'}] },
+    { t: '', c: '        final_model_name = ', rest:[{t:'str',c:'"Model 2"'}] },
+    { t: '', c: '    ', rest:[{t:'kw',c:'else'},{t:'',c:':'}] },
+    { t: '', c: '        final_model_name = ', rest:[{t:'str',c:'"Model 1"'}] },
+  ]},
+];
+
+// =====================================================
+// RENDERING
+// =====================================================
+let currentStep = 0;
+
+function renderLine(lineObj) {
+  let html = `<span class="${lineObj.t}">${esc(lineObj.c)}</span>`;
+  if (lineObj.rest) {
+    lineObj.rest.forEach(r => {
+      html += `<span class="${r.t}">${esc(r.c)}</span>`;
+    });
+  }
+  return html;
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function render() {
+  const step = steps[currentStep];
+
+  // Progress
+  document.getElementById('progressFill').style.width = `${((currentStep + 1) / steps.length) * 100}%`;
+  document.getElementById('progressLabel').textContent = `Step ${currentStep + 1} / ${steps.length}`;
+
+  // Nav dots
+  const navRow = document.getElementById('navRow');
+  navRow.innerHTML = '';
+  steps.forEach((s, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'nav-dot' + (i === currentStep ? ' active' : i < currentStep ? ' completed' : '');
+    dot.textContent = i + 1;
+    dot.title = s.title;
+    dot.onclick = () => { currentStep = i; render(); };
+    navRow.appendChild(dot);
+  });
+
+  // Code panel
+  const codePanel = document.getElementById('codePanel');
+  let codeHtml = '<div class="code-block">';
+  let lineNum = 1;
+  sourceBlocks.forEach((block) => {
+    block.lines.forEach((line) => {
+      const isCurrentBlock = block.step === currentStep;
+      const isPast = block.step < currentStep;
+      const isFuture = block.step > currentStep;
+      let cls = 'code-line';
+      if (isCurrentBlock) cls += ' highlighted';
+      else if (isFuture) cls += ' dimmed';
+      codeHtml += `<span class="${cls}"><span class="line-num">${lineNum}</span>${renderLine(line)}</span>\n`;
+      lineNum++;
+    });
+  });
+  codeHtml += '</div>';
+  codePanel.innerHTML = codeHtml;
+
+  // Scroll to highlighted lines
+  setTimeout(() => {
+    const highlighted = codePanel.querySelector('.highlighted');
+    if (highlighted) highlighted.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
+
+  // Explanation panel
+  const ep = document.getElementById('explainPanel');
+  let eHtml = '';
+  eHtml += `<div class="step-badge"><span class="num">${currentStep + 1}</span><span class="label">Step ${currentStep + 1} of ${steps.length}</span></div>`;
+  eHtml += `<div class="step-title">${step.title}</div>`;
+  eHtml += `<div class="step-subtitle">${step.subtitle}</div>`;
+
+  step.lines.forEach(l => {
+    eHtml += `<div class="explain-card">`;
+    eHtml += `<div class="code-ref">${esc(l.ref)}</div>`;
+    eHtml += `<div class="desc">${l.desc}</div>`;
+    eHtml += `</div>`;
+  });
+
+  if (step.tip) {
+    eHtml += `<div class="tip-box"><div class="tip-label">💡 Beginner Tip</div><div class="tip-text">${step.tip}</div></div>`;
+  }
+
+  eHtml += `<div class="bottom-nav">`;
+  eHtml += `<button class="btn btn-prev" ${currentStep === 0 ? 'disabled' : ''} onclick="prevStep()">← Previous</button>`;
+  eHtml += `<button class="btn btn-next" ${currentStep === steps.length - 1 ? 'disabled' : ''} onclick="nextStep()">Next Step →</button>`;
+  eHtml += `</div>`;
+
+  ep.innerHTML = eHtml;
+  ep.scrollTop = 0;
+}
+
+function nextStep() { if (currentStep < steps.length - 1) { currentStep++; render(); } }
+function prevStep() { if (currentStep > 0) { currentStep--; render(); } }
+
+// Keyboard nav
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); nextStep(); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prevStep(); }
+});
+
+render();
+</script>
+</body>
+</html>
